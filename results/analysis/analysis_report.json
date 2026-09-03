@@ -1,0 +1,53 @@
+{
+  "experiment": "sign_patch_front baseline vs attack",
+  "baseline": {
+    "num_routes": 10,
+    "total_frames": 2000,
+    "det_count_mean": 1.4935,
+    "det_count_std": 1.6446755759115534,
+    "bev_cosine_mean": 0.9901931829303562,
+    "bev_cosine_std": 0.09288602051162921,
+    "bev_l2_mean": 0.015293676206709843,
+    "bev_l2_std": 0.05813551072598836,
+    "speed_mean": 5.211365968623459
+  },
+  "attack_all": {
+    "num_routes": 10,
+    "total_frames": 1965,
+    "det_count_mean": 18.95470737913486,
+    "det_count_std": 22.92142756697903,
+    "bev_cosine_mean": 0.9643714444005664,
+    "bev_cosine_std": 0.18534836321277953,
+    "bev_l2_mean": 0.002950190622318043,
+    "bev_l2_std": 0.0012589850632774035
+  },
+  "attack_on": {
+    "total_frames": 1365,
+    "det_count_mean": 19.14945054945055,
+    "det_count_std": 23.025603078616673,
+    "bev_cosine_mean": 0.9560383625479114,
+    "bev_l2_mean": 0.0030864051648930753
+  },
+  "attack_off": {
+    "total_frames": 600,
+    "det_count_mean": 18.511666666666667
+  },
+  "detection": {
+    "threshold_cos": 0.99974,
+    "threshold_l2": 0.027718,
+    "threshold_consecutive": 15,
+    "routes_detected": 0,
+    "routes_total": 10,
+    "detection_rate": 0.0,
+    "baseline_false_positive_events": 0,
+    "attack_false_positive_frames": 0
+  },
+  "key_findings": [
+    "Detection count: baseline=1.49, attack_ON=19.15 (delta=+17.66)",
+    "BEV cosine: baseline=0.99019318, attack_ON=0.95603836 (delta=-0.03415482)",
+    "BEV L2: baseline=0.015294, attack_ON=0.003086 (delta=-0.012207)",
+    "Attack detection rate: 0/10 routes (0.0%) using robust threshold",
+    "Baseline false positives: 0 events | Attack false positives: 0 frames"
+  ],
+  "conclusion": "BEV drift detected under attack. The image-space patch attack on front_main camera causes measurable changes in BEV features. Note: The extremely high BEV cosine (>0.9999) in both conditions suggests the surrogate model's BEV representation is highly stable, possibly due to the domain gap between CARLA and training data dominating the feature space."
+}

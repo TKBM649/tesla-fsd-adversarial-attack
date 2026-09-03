@@ -1,0 +1,140 @@
+{
+  "mode": "h1_quick",
+  "mode_info": {
+    "mode": "h1_quick",
+    "num_groups": 8,
+    "num_intensities": 3,
+    "num_duty_cycles": 1,
+    "num_conditions": 24,
+    "num_routes": 3,
+    "total_routes": 72
+  },
+  "conditions": [
+    [
+      "single_front_main",
+      0.05,
+      1.0
+    ],
+    [
+      "single_front_main",
+      0.5,
+      1.0
+    ],
+    [
+      "single_front_main",
+      1.0,
+      1.0
+    ],
+    [
+      "single_front_narrow",
+      0.05,
+      1.0
+    ],
+    [
+      "single_front_narrow",
+      0.5,
+      1.0
+    ],
+    [
+      "single_front_narrow",
+      1.0,
+      1.0
+    ],
+    [
+      "single_front_wide",
+      0.05,
+      1.0
+    ],
+    [
+      "single_front_wide",
+      0.5,
+      1.0
+    ],
+    [
+      "single_front_wide",
+      1.0,
+      1.0
+    ],
+    [
+      "single_rear",
+      0.05,
+      1.0
+    ],
+    [
+      "single_rear",
+      0.5,
+      1.0
+    ],
+    [
+      "single_rear",
+      1.0,
+      1.0
+    ],
+    [
+      "single_side_fl",
+      0.05,
+      1.0
+    ],
+    [
+      "single_side_fl",
+      0.5,
+      1.0
+    ],
+    [
+      "single_side_fl",
+      1.0,
+      1.0
+    ],
+    [
+      "single_side_fr",
+      0.05,
+      1.0
+    ],
+    [
+      "single_side_fr",
+      0.5,
+      1.0
+    ],
+    [
+      "single_side_fr",
+      1.0,
+      1.0
+    ],
+    [
+      "single_side_rl",
+      0.05,
+      1.0
+    ],
+    [
+      "single_side_rl",
+      0.5,
+      1.0
+    ],
+    [
+      "single_side_rl",
+      1.0,
+      1.0
+    ],
+    [
+      "single_side_rr",
+      0.05,
+      1.0
+    ],
+    [
+      "single_side_rr",
+      0.5,
+      1.0
+    ],
+    [
+      "single_side_rr",
+      1.0,
+      1.0
+    ]
+  ],
+  "warmup_frames": 8,
+  "frames_per_route": 100,
+  "score_thr": 0.05,
+  "start_time": "2026-09-03 18:12:48",
+  "end_time": "2026-09-03 19:11:29",
+  "elapsed_seconds": 3520.434689283371
+}

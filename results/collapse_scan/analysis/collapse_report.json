@@ -1,0 +1,65 @@
+{
+  "conditions_analyzed": 8,
+  "collapse_points": {
+    "single_front_main__d1.0": {
+      "derivative": 0.275,
+      "threshold": null,
+      "ratio": null
+    },
+    "single_front_narrow__d1.0": {
+      "derivative": 0.75,
+      "threshold": null,
+      "ratio": null
+    },
+    "single_front_wide__d1.0": {
+      "derivative": 0.275,
+      "threshold": null,
+      "ratio": null
+    },
+    "single_rear__d1.0": {
+      "derivative": 0.75,
+      "threshold": null,
+      "ratio": null
+    },
+    "single_side_fl__d1.0": {
+      "derivative": 0.75,
+      "threshold": null,
+      "ratio": null
+    },
+    "single_side_fr__d1.0": {
+      "derivative": 0.275,
+      "threshold": null,
+      "ratio": null
+    },
+    "single_side_rl__d1.0": {
+      "derivative": 0.275,
+      "threshold": 0.5,
+      "ratio": 0.5
+    },
+    "single_side_rr__d1.0": {
+      "derivative": 0.75,
+      "threshold": null,
+      "ratio": null
+    }
+  },
+  "hypothesis_tests": {
+    "H1_front_critical": {
+      "collapse_by_camera": {
+        "single_front_main": 0.275,
+        "single_front_wide": 0.275,
+        "single_rear": 0.75,
+        "single_side_fl": 0.75,
+        "single_side_fr": 0.275,
+        "single_side_rl": 0.275
+      },
+      "most_vulnerable": "single_front_main",
+      "least_vulnerable": "single_rear"
+    },
+    "H2_multi_synergy": {
+      "median_collapse_single": 0.275,
+      "median_collapse_dual": null,
+      "median_collapse_triple": null,
+      "confirmed": null
+    }
+  }
+}

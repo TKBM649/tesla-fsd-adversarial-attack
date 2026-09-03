@@ -1,0 +1,204 @@
+{
+  "archive_date": "2026-09-02",
+  "phase": "Phase 2 (complete)",
+  "experiment": "Tesla FSD pure-vision adversarial attack - image-space patch injection",
+  "total_size_bytes": 26293346,
+  "total_files": 39,
+  "directory_structure": {
+    "baseline_route_*.json": "10 baseline route data files (2000 frames total)",
+    "baseline_stats.json": "Baseline aggregate statistics",
+    "baseline_collection.log": "Collection log (initial run)",
+    "baseline_collection_resume.log": "Collection log (resume run)",
+    "attack_sign_patch_front/": {
+      "attack_sign_patch_front_route_*.json": "10 attack route data files (1965 frames total)",
+      "attack_stats_sign_patch_front.json": "Attack aggregate statistics",
+      "images/": "8 frame comparison images (Route 0, every 30 frames)"
+    },
+    "analysis/": {
+      "fig1_timeseries_route0.png": "Time series comparison (Route 0)",
+      "fig2_distributions.png": "Distribution comparison (all routes)",
+      "fig3_per_route_comparison.png": "Per-route bar chart comparison",
+      "fig4_attack_timeline.png": "Attack activation timeline",
+      "fig5_bev_scatter.png": "BEV feature space scatter plot",
+      "analysis_report.json": "Quantitative analysis report"
+    },
+    "PHASE2_REPORT.md": "Phase 2 experiment report (method + results + limitations)",
+    "ARCHIVE_MANIFEST.json": "This file"
+  },
+  "key_metrics": {
+    "baseline_frames": 2000,
+    "baseline_routes": 10,
+    "attack_frames": 1965,
+    "attack_routes": 10,
+    "attack_frame_ratio": 0.694,
+    "det_count_baseline": 1.49,
+    "det_count_attack_on": 19.15,
+    "bev_cosine_attack_on": 0.956,
+    "monitor_detection_rate": 0.0,
+    "high_sensitivity_routes": [
+      "R3",
+      "R6",
+      "R9"
+    ]
+  },
+  "files": [
+    {
+      "path": "PHASE2_REPORT.md",
+      "size_bytes": 5750
+    },
+    {
+      "path": "analysis/analysis_report.json",
+      "size_bytes": 2058
+    },
+    {
+      "path": "analysis/fig1_timeseries_route0.png",
+      "size_bytes": 291191
+    },
+    {
+      "path": "analysis/fig2_distributions.png",
+      "size_bytes": 124800
+    },
+    {
+      "path": "analysis/fig3_per_route_comparison.png",
+      "size_bytes": 83168
+    },
+    {
+      "path": "analysis/fig4_attack_timeline.png",
+      "size_bytes": 62651
+    },
+    {
+      "path": "analysis/fig5_bev_scatter.png",
+      "size_bytes": 74784
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_0.json",
+      "size_bytes": 99155
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_1.json",
+      "size_bytes": 115989
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_2.json",
+      "size_bytes": 120423
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_3.json",
+      "size_bytes": 120618
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_4.json",
+      "size_bytes": 115434
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_5.json",
+      "size_bytes": 118941
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_6.json",
+      "size_bytes": 119351
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_7.json",
+      "size_bytes": 121523
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_8.json",
+      "size_bytes": 108142
+    },
+    {
+      "path": "attack_sign_patch_front/attack_sign_patch_front_route_9.json",
+      "size_bytes": 121527
+    },
+    {
+      "path": "attack_sign_patch_front/attack_stats_sign_patch_front.json",
+      "size_bytes": 7038
+    },
+    {
+      "path": "attack_sign_patch_front/images/route_0_frame0000_comparison.png",
+      "size_bytes": 2759069
+    },
+    {
+      "path": "attack_sign_patch_front/images/route_0_frame0010_comparison.png",
+      "size_bytes": 2422948
+    },
+    {
+      "path": "attack_sign_patch_front/images/route_0_frame0030_comparison.png",
+      "size_bytes": 2890073
+    },
+    {
+      "path": "attack_sign_patch_front/images/route_0_frame0060_comparison.png",
+      "size_bytes": 3070808
+    },
+    {
+      "path": "attack_sign_patch_front/images/route_0_frame0090_comparison.png",
+      "size_bytes": 3064619
+    },
+    {
+      "path": "attack_sign_patch_front/images/route_0_frame0120_comparison.png",
+      "size_bytes": 3077113
+    },
+    {
+      "path": "attack_sign_patch_front/images/route_0_frame0150_comparison.png",
+      "size_bytes": 3061829
+    },
+    {
+      "path": "attack_sign_patch_front/images/route_0_frame0180_comparison.png",
+      "size_bytes": 3077214
+    },
+    {
+      "path": "baseline_collection.log",
+      "size_bytes": 10389
+    },
+    {
+      "path": "baseline_collection_resume.log",
+      "size_bytes": 17426
+    },
+    {
+      "path": "baseline_route_0.json",
+      "size_bytes": 96181
+    },
+    {
+      "path": "baseline_route_1.json",
+      "size_bytes": 102164
+    },
+    {
+      "path": "baseline_route_2.json",
+      "size_bytes": 108472
+    },
+    {
+      "path": "baseline_route_3.json",
+      "size_bytes": 107168
+    },
+    {
+      "path": "baseline_route_4.json",
+      "size_bytes": 99004
+    },
+    {
+      "path": "baseline_route_5.json",
+      "size_bytes": 99056
+    },
+    {
+      "path": "baseline_route_6.json",
+      "size_bytes": 99469
+    },
+    {
+      "path": "baseline_route_7.json",
+      "size_bytes": 103657
+    },
+    {
+      "path": "baseline_route_8.json",
+      "size_bytes": 100173
+    },
+    {
+      "path": "baseline_route_9.json",
+      "size_bytes": 105399
+    },
+    {
+      "path": "baseline_stats.json",
+      "size_bytes": 8572
+    }
+  ],
+  "code_commit": "77af60b",
+  "git_repo": "c:\\Users\\CWQ20\\Documents\\QoderCN\\2026-08-31\\chat-2"
+}

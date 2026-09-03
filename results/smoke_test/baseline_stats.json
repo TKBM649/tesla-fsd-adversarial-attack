@@ -1,0 +1,50 @@
+{
+  "overall": {
+    "num_routes": 1,
+    "total_frames": 200,
+    "score_thr": 0.05,
+    "det_count_mean": 0.65,
+    "det_count_std": 0.0,
+    "det_score_mean": 0.016565158609300853,
+    "det_score_std": 0.0,
+    "det_score_max_mean": 0.03626741407904774,
+    "bev_cosine_mean": 0.9972604590201699,
+    "bev_cosine_std": 0.0,
+    "bev_l2_mean": 0.02058452405271656,
+    "bev_l2_std": 0.0,
+    "speed_mean": 7.508976312336524,
+    "legacy_threshold_bev_cosine": 0.9972604590201699,
+    "legacy_threshold_bev_l2": 0.02058452405271656,
+    "attack_threshold_bev_cosine": 0.9997342956966049,
+    "attack_threshold_bev_l2": 0.03305939570713986,
+    "threshold_rule": "BEV cosine < 0.999734 AND L2 > 0.033059 on 15 consecutive frames (robust median+-3*MAD on normal-driving core)",
+    "threshold_false_positives_single_frame": 21,
+    "threshold_false_positives_persisted": 0,
+    "threshold_false_positive_events": [],
+    "scene_jump_frames_excluded": 1
+  },
+  "per_route": [
+    {
+      "num_frames": 200,
+      "score_thr": 0.05,
+      "det_count_mean": 0.65,
+      "det_count_std": 1.1565033506220377,
+      "det_count_min": 0,
+      "det_count_max": 4,
+      "det_count_raw_mean": 300.0,
+      "det_score_mean": 0.016565158609300853,
+      "det_score_std": 0.02566928046286055,
+      "det_score_median": 0.0,
+      "det_score_max_mean": 0.03626741407904774,
+      "bev_cosine_mean": 0.9972604590201699,
+      "bev_cosine_std": 0.03574511333510829,
+      "bev_cosine_min": 0.49684609007251057,
+      "bev_l2_mean": 0.02058452405271656,
+      "bev_l2_max": 1.00314895197814,
+      "speed_mean": 7.508976312336524,
+      "speed_max": 8.448709261083255,
+      "route_id": "route_0",
+      "spawn_index": 149
+    }
+  ]
+}
