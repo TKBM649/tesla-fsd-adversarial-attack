@@ -1,0 +1,557 @@
+================================================================================
+  Tesla FSD Pure-Vision Autonomous Driving Adversarial Attack Experiment System
+  Issues, Solutions & Reproducibility Guide
+================================================================================
+
+Source: 4 handover documents (PROJECT_STATUS.md x3 + PHASE1_COMPLETION_OPERATIONS.md + PHASE2_5_IMPLEMENTATION_PLAN.md)
+Date: 2026-09-03
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+  Part A: REPRODUCIBILITY GUIDE (for new users)
+    A1. System Requirements
+    A2. Environment Setup (Step-by-Step)
+    A3. BEVFormer Source Code Patches
+    A4. Quick Start Commands
+    A5. Project Directory Structure
+    A6. Key Thresholds & Parameters
+  Part B: ISSUES & SOLUTIONS
+    1. GPU VRAM & Hardware Bottlenecks
+    2. CARLA Simulator Stability Issues
+    3. Camera & Sensor Configuration Issues
+    4. BEVFormer Model Adaptation Issues
+    5. WSL & Cross-Platform Environment Issues
+    6. Synchronization Mode & Timing Issues
+    7. Data Collection & Experiment Design Issues
+    8. Code Architecture & Engineering Issues
+    9. Failed Approaches (Verified Infeasible)
+  Appendix: Key Lessons Learned
+
+================================================================================
+PART A: REPRODUCIBILITY GUIDE
+================================================================================
+
+--------------------------------------------------------------------------------
+A1. System Requirements
+--------------------------------------------------------------------------------
+
+Hardware:
+  - GPU: NVIDIA RTX 2070+ (6-8GB VRAM minimum)
+           Recommended: RTX 3070/3080/3090/4090 (16GB+ VRAM) for higher resolution
+  - RAM: 16GB+
+  - Storage: 50GB+ free space (CARLA 7.3GB + BEVFormer 2GB + env 3GB + results)
+
+Software:
+  - OS: Windows 10/11 (CARLA server) + WSL 2 Ubuntu 22.04 (Python client)
+  - CARLA: 0.9.16 (Windows server, port 2000)
+  - Python: 3.10.12 (in virtual environment)
+  - PyTorch: 1.11.0+cu117 (MUST be <=1.13 for mmcv-full 1.4.8 compatibility)
+  - CUDA: 11.7 (matching PyTorch)
+
+--------------------------------------------------------------------------------
+A2. Environment Setup (Step-by-Step)
+--------------------------------------------------------------------------------
+
+Step 1: Install WSL 2 + Ubuntu 22.04
+  # Windows PowerShell (Admin)
+  wsl --install -d Ubuntu-22.04
+  # Restart computer if prompted
+
+Step 2: Install System Dependencies (inside WSL)
+  sudo apt-get update
+  sudo apt-get install -y build-essential cmake python3-dev python3-venv \
+    python3-pip libvulkan1 libgl1-mesa-glx libglib2.0-0
+
+Step 3: Create Python Virtual Environment
+  python3 -m venv ~/bevformer-env
+  source ~/bevformer-env/bin/activate
+
+Step 4: Install PyTorch (MUST be 1.11.0 for mmcv compatibility)
+  pip install torch==1.11.0+cu117 torchvision==0.12.0+cu117 torchaudio==0.11.0 \
+    --index-url https://download.pytorch.org/whl/cu117
+
+Step 5: Install mmcv-full (MUST match PyTorch version)
+  pip install mmcv-full==1.4.8 -f \
+    https://download.openmmlab.com/mmcv/dist/cu117/torch1.11.0/index.html
+
+Step 6: Install mmdetection & mmdetection3d
+  pip install mmdet==2.14.0
+  pip install mmdet3d==0.17.1
+
+Step 7: Install CARLA Python API
+  pip install carla==0.9.16 numpy opencv-python pygame
+  # For China users, use Tsinghua mirror for faster download:
+  # pip install carla numpy opencv-python pygame \
+  #   -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+Step 8: Install other dependencies
+  pip install scipy matplotlib scikit-learn
+
+Step 9: Clone BEVFormer and apply source patches (see A3 below)
+  cd ~
+  git clone https://github.com/fundamentalvision/BEVFormer.git
+  cd BEVFormer
+  # Apply patches as described in section A3
+
+Step 10: Download BEVFormer-tiny checkpoint
+  # Download from: https://github.com/fundamentalvision/BEVFormer
+  # Place at: ~/BEVFormer/ckpts/bevformer_tiny_epoch_24.pth
+  mkdir -p ~/BEVFormer/ckpts
+  # wget or manually download bevformer_tiny_epoch_24.pth
+
+Step 11: Download and install CARLA 0.9.16 (Windows side)
+  # Download from: https://github.com/carla-simulator/carla/releases/tag/0.9.16
+  # Or CDN: https://tiny.carla.org/carla-0-9-16-windows
+  # Extract to D:\CARLA\
+  # Launch: D:\CARLA\CarlaUE4.exe -quality-level=Low -windowed -ResX=1280 -ResY=720
+
+Step 12: Verify CARLA connection from WSL
+  python -c "import carla; client = carla.Client('localhost', 2000); \
+    client.set_timeout(10.0); print('Connected. Map:', client.get_world().get_map().name)"
+  # Expected: Connected. Map: Town10HD_Opt
+
+Step 13: Copy project scripts to WSL
+  # Copy all scripts from this repo to ~/carla-adversarial/scripts/
+  mkdir -p ~/carla-adversarial/scripts
+  cp -r <repo_path>/scripts/* ~/carla-adversarial/scripts/
+  cp -r <repo_path>/core/* ~/carla-adversarial/scripts/
+  cp -r <repo_path>/pipeline/* ~/carla-adversarial/scripts/
+  cp -r <repo_path>/analysis/* ~/carla-adversarial/scripts/
+  cp -r <repo_path>/utils/* ~/carla-adversarial/scripts/
+  cp <repo_path>/config/tesla_camera_layout.py ~/carla-adversarial/scripts/
+
+--------------------------------------------------------------------------------
+A3. BEVFormer Source Code Patches
+--------------------------------------------------------------------------------
+
+The following 4 files in the BEVFormer repo MUST be modified:
+
+File 1: projects/mmdet3d_plugin/__init__.py
+  - Comment out dd3d-related imports
+
+File 2: projects/mmdet3d_plugin/datasets/__init__.py
+  - Comment out v2 dataset imports
+
+File 3: projects/mmdet3d_plugin/datasets/pipelines/__init__.py
+  - Comment out dd3d_mapper imports
+
+File 4: projects/mmdet3d_plugin/bevformer/detectors/bevformer_fp16.py
+  - Remove tkinter import (causes headless server errors)
+
+Additionally, in your Python scripts, add this numba compatibility fix:
+  import numba
+  if not hasattr(numba, 'errors'):
+      numba.errors = numba  # numba>=0.53 removed numba.errors module
+
+And monkey-patch the double-registration issue:
+  from mmcv.utils import Registry
+  _original_register = Registry._register_module
+  def _patched_register(self, module=None, name=None, force=False):
+      return _original_register(self, module, name, force=True)
+  Registry._register_module = _patched_register
+
+--------------------------------------------------------------------------------
+A4. Quick Start Commands
+--------------------------------------------------------------------------------
+
+# Activate environment
+source ~/bevformer-env/bin/activate
+cd ~/carla-adversarial/scripts
+
+# Adapter self-test (no CARLA needed)
+python run_bevformer_carla.py --test
+
+# Offline inference (requires saved images)
+python run_bevformer_carla.py --offline --img-dir ~/carla-adversarial/output
+
+# Online inference (requires CARLA server running)
+python run_bevformer_carla.py --online --host localhost --port 2000 --num-frames 50
+
+# Baseline data collection (10 routes x 200 frames)
+python collect_baseline.py --num-routes 10 --frames-per-route 200 \
+  --warmup-frames 8 --score-thr 0.05 \
+  --output-dir ~/carla-adversarial/results \
+  --host localhost --port 2000
+
+# Attack data collection
+python collect_attack.py --attack-config sign_patch_front \
+  --num-routes 10 --frames-per-route 200 \
+  --warmup-frames 8 --score-thr 0.05 \
+  --output-dir ~/carla-adversarial/results \
+  --host localhost --port 2000 \
+  --save-images --save-interval 30
+
+# Resume from breakpoint
+python collect_attack.py --attack-config sign_patch_front \
+  --num-routes 10 --start-route-id 5 ...
+
+# Collapse point scan (quick mode)
+python run_collapse_experiment.py --mode h1_quick --frames-per-route 100
+
+# Resume scan from breakpoint
+python run_collapse_experiment.py --mode h1_quick --frames-per-route 100 --resume
+
+# Run analysis
+python analyze_collapse_points.py \
+  --scan-dir ~/carla-adversarial/results/collapse_scan/h1_quick
+
+# Compare baseline vs attack
+python analysis_baseline_vs_attack.py
+
+--------------------------------------------------------------------------------
+A5. Project Directory Structure
+--------------------------------------------------------------------------------
+
+tesla-fsd-adversarial-attack/
+  config/
+    tesla_camera_layout.py          # Tesla 8-camera layout parameters
+  core/
+    attack_configs.py               # Attack scenario definitions (6 presets)
+    attack_injector.py              # Image-space adversarial patch injection
+    collapse_configs.py             # Collapse scan experiment matrix config
+  pipeline/
+    setup_tesla_cameras.py          # Phase 1: Spawn 8 Tesla cameras in CARLA
+    bev_stitching.py                # Phase 1: BEV surround-view stitching
+    carla_bev_adapter.py            # CARLA-BEVFormer bridge adapter
+    run_bevformer_carla.py          # Online/offline inference main program
+    run_bev_demo.py                 # BEV demo visualization
+    collect_baseline.py             # Phase 2: Baseline data collection
+    collect_attack.py               # Phase 2: Attack data collection
+    run_collapse_experiment.py      # Phase 3B: Collapse scan CLI entry
+  analysis/
+    analyze_baseline.py             # Baseline statistics analysis
+    analyze_collapse_points.py      # Collapse point detection + figures
+    analysis_baseline_vs_attack.py  # Baseline vs attack comparison
+    finalize_baseline_stats.py      # Finalize baseline statistics
+    collapse_point_scanner.py       # Collapse point scanning engine
+  utils/                            # Test and utility scripts (13 files)
+  scripts/                          # Shell helper scripts (3 files)
+  results/                          # Experiment data
+    baseline/                       # Phase 2 baseline (10 routes + stats)
+    analysis/                       # Phase 2 analysis (report + 5 figures)
+    collapse_scan/                  # Phase 3B scan results
+    attack_sign_patch_front/        # Phase 2 attack data
+    smoke_test/                     # Smoke test data
+  output/                           # BEV visualization PNGs
+    raw_cameras/                    # 8 original Tesla camera captures
+    bevformer_offline/              # 6 offline per-camera detection results
+    bevformer_online/               # 6 online per-camera detection results
+    grids/                          # 3 composite grid images
+
+--------------------------------------------------------------------------------
+A6. Key Thresholds & Parameters
+--------------------------------------------------------------------------------
+
+| Parameter           | Value      | Source                | Description                  |
+|---------------------|------------|-----------------------|------------------------------|
+| BEV Cosine Threshold| 0.999740   | Phase 1 calibration   | Below = anomaly              |
+| BEV L2 Threshold    | 0.027718   | Phase 1 calibration   | Above = anomaly              |
+| Persistent Frames   | 15         | Monitor design        | Consecutive anomalous frames |
+| Detection Score     | 0.05       | Empirical             | Below = filtered out         |
+| Attack Onset        | 60         | Experiment design     | Warmup frames before attack  |
+| Camera Resolution   | 640x480    | VRAM constraint       | Reduced from 1280x960        |
+| Sync Mode dt        | 0.05s      | CARLA setting         | Fixed delta seconds          |
+| Warmup Frames       | 8          | Empirical             | Before data collection       |
+| Score Threshold     | 0.05       | Empirical             | 3D box confidence filter     |
+
+================================================================================
+PART B: ISSUES & SOLUTIONS
+================================================================================
+
+--------------------------------------------------------------------------------
+1. GPU VRAM & Hardware Bottlenecks
+--------------------------------------------------------------------------------
+
+Issue 1.1: RTX 4060 8GB VRAM insufficient for CARLA + BEVFormer simultaneously
+  Symptom: At 1280x960, GPU utilization 0% (completely frozen), VRAM 95% (7820 MiB)
+  Root cause: 8 high-res camera renders + BEVFormer-tiny inference exceed 8GB limit
+  Fix: Reduce all 8 camera resolutions from 1280x960 to 640x480 (75% fewer pixels)
+  Result: GPU utilization recovered from 0% to 70%, temp from 50C to 58C
+  File: tesla_camera_layout.py (all 8 cameras width/height modified)
+  Limitation: BEVFormer input quality reduced, but relative comparison still valid
+
+Issue 1.2: CARLA low-quality mode cannot fundamentally solve VRAM bottleneck
+  Symptom: -quality-level=Low reduces CARLA render VRAM from 786MB to 224MB
+  But total VRAM still at 95%
+  Conclusion: Partial mitigation only; must combine with resolution reduction
+  Final: 640x480 resolution + low-quality CARLA startup
+
+Issue 1.3: Cannot run BEVFormer-base/small larger models
+  Symptom: BEVFormer-base needs 28.5GB VRAM, small needs 10.5GB
+  Impact: Only tiny version works (BEV 50x50, ResNet-50 backbone)
+  Mitigation: Use relative metrics (DDR/SDR) instead of absolute values
+
+--------------------------------------------------------------------------------
+2. CARLA Simulator Stability Issues
+--------------------------------------------------------------------------------
+
+Issue 2.1: CARLA server occasional timeout during long experiments
+  Symptom: world.tick() timeout (130s+) after >30 min continuous run
+  Trigger: GPU temp >60C, VRAM saturated
+  Mitigation: Restart CARLA server + low-quality mode
+  Code: collect_baseline.py has built-in freeze-recovery (teleport reset + post_reset flag)
+
+Issue 2.2: Spawning cameras in synchronous mode causes deadlock
+  Symptom: Enabling sync mode before spawning vehicles/cameras causes tick timeout
+  Root cause: Sync mode needs tick to drive actor spawn, but tick needs all actors ready
+  Fix: Spawn all actors in async mode, sleep(1.0), then enable synchronous mode
+  Rule: spawn -> sleep(1.0) -> enable_sync -> route_loop -> disable_sync -> cleanup
+
+Issue 2.3: world.load_world() map reload causes freeze
+  Symptom: load_world('Town10HD_Opt') is slow and may freeze CARLA server
+  Fix: Use client.get_world() to get current world, do not reload
+
+Issue 2.4: CARLA 0.9.16 has no standalone TrafficManager executable
+  Symptom: TrafficManager.exe --port 8000 fails
+  Root cause: TM is integrated into Python API in CARLA 0.9.16
+  Fix: TM auto-starts when set_autopilot() is called, port 8000
+
+--------------------------------------------------------------------------------
+3. Camera & Sensor Configuration Issues
+--------------------------------------------------------------------------------
+
+Issue 3.1: CARLA camera physical orientation opposite to config (side/rear cameras)
+  Symptom: Cameras with |yaw|>=45 degrees face opposite direction from config
+  Root cause: CARLA applies child actor rotation relative to parent actor
+  Fix: In spawn_tesla_cameras() and build_img_metas(), negate yaw for |yaw|>=45
+  Note: Front cameras (yaw=0/+5) are unaffected
+
+Issue 3.2: Global euler_to_rotation yaw negation fails
+  Symptom: Negating yaw globally corrupts front camera lidar2cam matrices
+  Root cause: Front cameras have yaw near 0, negation breaks projection
+  Fix: Only negate for |yaw|>=45 conditionally in spawn and build_img_metas
+
+Issue 3.3: Repeated camera callback attach causes CARLA timeout
+  Symptom: Attaching callbacks per route in run_one_route_reuse causes server timeout
+  Fix: Attach callbacks once in main(), share frame_buffer across routes
+
+Issue 3.4: Clearing frame buffer every frame causes massive frame drops
+  Symptom: After clearing buffer, async callbacks can't write data in time
+  Root cause: Camera callbacks are asynchronous; clearing causes data write delay
+  Fix: Accumulation mode - keep latest frame per camera, never clear buffer
+ 配合: 5 warmup frames + sleep(0.2s)/frame to wait for all callbacks
+
+Issue 3.5: Negative control anomaly (non-BEV cameras still show response)
+  Symptom: Attacking front_narrow/side_rear_right (not in BEV pipeline) still triggers detection
+  Possible cause: Attack indirectly affects other cameras via spatial attention
+  Status: Requires further verification
+
+--------------------------------------------------------------------------------
+4. BEVFormer Model Adaptation Issues
+--------------------------------------------------------------------------------
+
+Issue 4.1: img_metas batch dimension confused with camera count
+  Symptom: extract_img_feat squeezes batch dim at B=1, num_cams(6) mistaken for batch_size
+  Fix: Duplicate img_metas 6 times to ensure correct dimensions
+
+Issue 4.2: box_type_3d set as string causes get_bboxes error
+  Symptom: Type check fails inside get_bboxes when box_type_3d is a string
+  Fix: Must set to LiDARInstance3DBoxes class object (not string)
+
+Issue 4.3: mmdet3d v0.17.1 module double registration
+  Symptom: mmcv.utils.Registry throws RuntimeError on duplicate registration
+  Fix: Monkey-patch mmcv.utils.Registry._register_module with force=True
+
+Issue 4.4: numba version compatibility (numba>=0.53 removes numba.errors)
+  Symptom: BEVFormer depends on numba.errors which doesn't exist in newer versions
+  Fix: Create numba.errors pseudo-module (import numba; numba.errors = numba)
+
+Issue 4.5: BEVFormer source import errors (dd3d, tkinter, v2 datasets)
+  Fix: Manually modify 4 source files:
+    - projects/mmdet3d_plugin/__init__.py -- comment out dd3d imports
+    - projects/mmdet3d_plugin/datasets/__init__.py -- comment out v2 dataset imports
+    - projects/mmdet3d_plugin/datasets/pipelines/__init__.py -- comment out dd3d_mapper
+    - projects/mmdet3d_plugin/bevformer/detectors/bevformer_fp16.py -- remove tkinter import
+
+Issue 4.6: BEV temporal cache cannot be enabled
+  Symptom: Trying prev_bev_exists=True to pass temporal features
+  Root cause: BEVFormer hardcodes prev_bev_exists=False
+  Fix: Use single-frame inference only, abandon temporal features
+
+Issue 4.7: Low detection confidence (Domain Gap)
+  Symptom: Baseline confidence集中在 0.14-0.20 (score_thr must be 0.05 for enough boxes)
+  Root cause: nuScenes pre-trained model on CARLA domain gap + tiny model capacity
+  Impact: Attack effect may be overestimated (large relative gain, small absolute value)
+  Mitigation: Use relative metrics (DDR/SDR) instead of absolute values
+
+Issue 4.8: BEV feature monitor has 0% detection rate for image-space attacks
+  Symptom: Phase 2 shows BEV L2 ~0.003, far below threshold 0.027718
+  Conclusion: Attack effect is entirely through detection head, not feature space drift
+  Significance: BEV encoder is robust (cosine self-similarity = 1.0), detection head is fragile
+  Impact: Phase 4 defense should target detection head anomalies, not BEV features
+
+--------------------------------------------------------------------------------
+5. WSL & Cross-Platform Environment Issues
+--------------------------------------------------------------------------------
+
+Issue 5.1: WSL background process management unstable
+  Symptom: nohup, setsid, screen all fail to keep background processes
+  Root cause: WSL 2 process management tied to Windows session
+  Fix: Use foreground terminal for long experiments
+
+Issue 5.2: WSL instance freezes after multiple failures
+  Symptom: CARLA server异常 causes WSL client to hang
+  Fix: wsl --terminate Ubuntu-22.04 to restart WSL instance
+  Prevention: Save checkpoint every 5 routes
+
+Issue 5.3: PyTorch 2.x incompatible with mmcv 1.4.0
+  Symptom: mmcv-full 1.4.0 compilation fails in PyTorch 2.5.1+cu121 environment
+  Root cause: mmcv-full 1.4.0 only supports PyTorch <= 1.13
+  Fix: Create isolated venv ~/bevformer-env, downgrade to PyTorch 1.11.0+cu117 + mmcv-full 1.4.8
+
+Issue 5.4: Windows PowerShell Chinese encoding issues
+  Symptom: PowerShell default GBK encoding cannot handle Chinese paths and emoji
+  Error: UnicodeEncodeError: 'gbk' codec can't encode character
+  Fix: Use ASCII markers in cross-platform scripts ([PASS] instead of checkmark, [FAIL] instead of X)
+
+Issue 5.5: Windows-WSL script version drift
+  Symptom: Modifying scripts on Windows without syncing to WSL causes data inconsistency
+  Fix: Establish md5 verification discipline -- run md5sum before every collection
+  Flow: modify -> cp to WSL -> md5 verify -> git commit
+
+Issue 5.6: pip multi-source index selection issue
+  Symptom: Using --index-url for single index causes pip to search only that index
+  Root cause: carla package not on PyTorch CUDA source
+  Fix: Use --extra-index-url or install in two steps (PyPI first, then PyTorch source)
+  Tip: China users should use Tsinghua mirror https://pypi.tuna.tsinghua.edu.cn/simple
+
+--------------------------------------------------------------------------------
+6. Synchronization Mode & Timing Issues
+--------------------------------------------------------------------------------
+
+Issue 6.1: Switching sync mode per route causes state machine chaos
+  Symptom: Enabling/disabling sync per route causes camera callback timeouts
+  Root cause: Multiple apply_settings accumulate RPC overhead, once froze server
+  Fix: Single sync mode for entire experiment, never switch mid-experiment
+  Implementation: spawn -> enable_sync -> route_loop -> disable_sync -> cleanup
+
+Issue 6.2: First few frames skipped as warmup in online mode
+  Symptom: Only 14 of 20 frames processed (first 5-6 are warmup)
+  Root cause: Camera callbacks need time to be ready
+  Fix: Increase warmup to 8-10 frames; use --num-frames 50+ for more valid data
+
+Issue 6.3: Frame loss (some routes collect 193-199 frames instead of 200)
+  Symptom: Frames lost due to camera data delay or freeze-recovery teleport
+  Impact: Minor statistical偏差 (<5%)
+  Mitigation: Resume collection implemented (--start-route-id), can补采 missing frames
+
+--------------------------------------------------------------------------------
+7. Data Collection & Experiment Design Issues
+--------------------------------------------------------------------------------
+
+Issue 7.1: Detection count distribution severely right-skewed (long-tail)
+  Symptom: Baseline Det Count distribution non-normal, mean not representative
+  Fix: Change statistics from mean +/- std to median +/- IQR
+  Applied: analyze_collapse_points.py uses median/IQR throughout
+
+Issue 7.2: Attack effect highly scene-dependent
+  Symptom: R3/R6/R9 attack effect amplified 10x (Det Count 50+), other routes limited
+  Root cause: Geometry/lighting conditions resonate with patch perturbation
+  Impact: Attack success rate unstable, hard to generalize
+  Mitigation: Phase 3 must consider scene diversity, report per-route results
+
+Issue 7.3: Resume parameter omission
+  Symptom: User forgot --resume parameter, experiment restarted from beginning
+  Fix: Emphasize explicit --resume in documentation
+  Implementation: collapse_point_scanner.py scan_batch() supports resume parameter
+
+Issue 7.4: BEVFormer detection boxes fixed at 300
+  Symptom: Detection count always 300 in offline and online inference
+  Root cause: BEVFormer-tiny num_pred parameter set to 300 (fixed output count)
+  Impact: Det Count metric needs confidence threshold to be meaningful
+
+Issue 7.5: h1_quick mode time-accuracy tradeoff
+  Config: 3 routes x 100 frames = 7200 frames/condition (original 5x200=24000)
+  Reason: GPU resource constrained, avoid long occupation causing service degradation
+  Effect: Time reduced 42% (~2.4h -> ~1.4h), sufficient to locate collapse point range
+  Limitation: Statistical precision reduced, key findings need full validation
+
+--------------------------------------------------------------------------------
+8. Code Architecture & Engineering Issues
+--------------------------------------------------------------------------------
+
+Issue 8.1: collect_attack.py uses wrong function name setup_tesla_cameras
+  Symptom: Import fails, cannot find spawn_tesla_cameras
+  Root cause: Script used incorrect function name
+  Fix: Correct to spawn_tesla_cameras, fix parameter order (vehicle, world)
+
+Issue 8.2: attack_configs.py missing patch_frac minimum constraint
+  Symptom: intensity=0 creates blank conditions with no attack effect
+  Fix: Set patch_frac minimum to [0.05, 0.5], replace intensity=0 with 0.05 as baseline
+
+Issue 8.3: Tesla camera mapping left-right asymmetry
+  Symptom: TESLA_TO_NUSCENES['CAM_BACK_RIGHT'] = 'side_front_right' naming asymmetric
+  Status: Identified but not fully resolved, needs user confirmation
+
+Issue 8.4: Code duplication between collapse_point_scanner.py and collect_attack.py
+  Symptom: Frame loop logic duplicated in both scripts
+  Fix: collapse_point_scanner.py directly imports collect_attack.py functions
+  Reused: run_one_route_reuse, define_routes, camera_callback_with_name, compute_route_summary
+
+--------------------------------------------------------------------------------
+9. Failed Approaches (Verified Infeasible)
+--------------------------------------------------------------------------------
+
+9.1  Global euler_to_rotation yaw negation
+     Failure: Front camera lidar2cam matrices corrupted
+     Alternative: Conditional negation only for |yaw|>=45 degrees
+
+9.2  Spawning cameras in synchronous mode
+     Failure: tick-spawn deadlock
+     Alternative: Async spawn then enable sync
+
+9.3  Clearing frame buffer every frame
+     Failure: Async callbacks can't write data in time
+     Alternative: Accumulation mode, keep latest frames
+
+9.4  PyTorch 2.x + mmcv 1.4.0
+     Failure: mmcv-full 1.4.0 only supports PyTorch <= 1.13
+     Alternative: Isolated venv + PyTorch 1.11.0
+
+9.5  world.load_world() map reload
+     Failure: Slow and causes CARLA freeze
+     Alternative: client.get_world() for current world
+
+9.6  TrafficManager.exe standalone process
+     Failure: CARLA 0.9.16 has no standalone TM executable
+     Alternative: Python API built-in TM
+
+9.7  Switching sync mode per route
+     Failure: State machine chaos + RPC overhead accumulation
+     Alternative: Single sync mode for entire experiment
+
+9.8  Repeated camera callback attach
+     Failure: Repeated attach causes CARLA timeout
+     Alternative: Attach once in main(), share across routes
+
+9.9  BEV temporal cache enablement
+     Failure: BEVFormer hardcodes prev_bev_exists=False
+     Alternative: Single-frame inference only
+
+9.10 CARLA low-quality mode to solve VRAM bottleneck
+     Failure: Only reduces CARLA render VRAM (786->224MB), total still 95%
+     Alternative: Reduce camera resolution 1280x960 -> 640x480
+
+9.11 WSL background process management (nohup/screen/setsid)
+     Failure: WSL 2 process management tied to Windows session
+     Alternative: Foreground terminal execution
+
+================================================================================
+APPENDIX: KEY LESSONS LEARNED
+================================================================================
+
+1. Camera resolution upper limit for 8GB VRAM devices is 640x480
+2. CARLA hybrid deployment (Windows server + WSL client) reduces per-side resource pressure
+3. Cross-platform scripts MUST use ASCII markers, avoid emoji and Chinese characters
+4. MD5 verification of Windows-WSL script consistency required before every experiment
+5. Statistics should use median +/- IQR (detection count distribution is severely right-skewed)
+6. Maintain single sync mode for entire experiment, never switch mid-run
+7. Camera callbacks attached only once, frame_buffer shared across routes
+8. Long experiments MUST implement resume/checkpoint mechanisms
+9. BEV encoder is robust to image-space attacks; defense should target detection head anomalies
+10. Attack effect evaluation uses relative metrics (DDR/SDR), not absolute values
+
+================================================================================
+END OF DOCUMENT
+================================================================================
