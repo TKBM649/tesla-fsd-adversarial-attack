@@ -10,12 +10,12 @@ Date: 2026-09-03
 TABLE OF CONTENTS
 ================================================================================
   Part A: REPRODUCIBILITY GUIDE (for new users)
-    A1. System Requirements
-    A2. Environment Setup (Step-by-Step)
-    A3. BEVFormer Source Code Patches
-    A4. Quick Start Commands
-    A5. Project Directory Structure
-    A6. Key Thresholds & Parameters
+    1. System Requirements
+    2. Environment Setup (Step-by-Step)
+    3. BEVFormer Source Code Patches
+    4. Quick Start Commands
+    5. Project Directory Structure
+    6. Key Thresholds & Parameters
   Part B: ISSUES & SOLUTIONS
     1. GPU VRAM & Hardware Bottlenecks
     2. CARLA Simulator Stability Issues
