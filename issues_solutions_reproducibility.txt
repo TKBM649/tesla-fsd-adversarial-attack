@@ -2,10 +2,6 @@
   Tesla FSD Pure-Vision Autonomous Driving Adversarial Attack Experiment System
   Issues, Solutions & Reproducibility Guide
 ================================================================================
-
-Source: 4 handover documents (PROJECT_STATUS.md x3 + PHASE1_COMPLETION_OPERATIONS.md + PHASE2_5_IMPLEMENTATION_PLAN.md)
-Date: 2026-09-03
-
 ================================================================================
 TABLE OF CONTENTS
 ================================================================================
