@@ -33,7 +33,7 @@ PART A: REPRODUCIBILITY GUIDE
 --------------------------------------------------------------------------------
 
 Hardware:
-  - GPU: NVIDIA RTX 2070+ (6-8GB VRAM minimum)
+  - GPU: NVIDIA RTX 4060+ (8GB VRAM minimum)
            Recommended: RTX 3070/3080/3090/4090 (16GB+ VRAM) for higher resolution
   - RAM: 16GB+
   - Storage: 50GB+ free space (CARLA 7.3GB + BEVFormer 2GB + env 3GB + results)
