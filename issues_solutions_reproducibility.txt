@@ -33,7 +33,7 @@ PART A: REPRODUCIBILITY GUIDE
 ================================================================================
 
 --------------------------------------------------------------------------------
-A1. System Requirements
+1. System Requirements
 --------------------------------------------------------------------------------
 
 Hardware:
@@ -50,7 +50,7 @@ Software:
   - CUDA: 11.7 (matching PyTorch)
 
 --------------------------------------------------------------------------------
-A2. Environment Setup (Step-by-Step)
+2. Environment Setup (Step-by-Step)
 --------------------------------------------------------------------------------
 
 Step 1: Install WSL 2 + Ubuntu 22.04
@@ -122,7 +122,7 @@ Step 13: Copy project scripts to WSL
   cp <repo_path>/config/tesla_camera_layout.py ~/carla-adversarial/scripts/
 
 --------------------------------------------------------------------------------
-A3. BEVFormer Source Code Patches
+3. BEVFormer Source Code Patches
 --------------------------------------------------------------------------------
 
 The following 4 files in the BEVFormer repo MUST be modified:
@@ -152,7 +152,7 @@ And monkey-patch the double-registration issue:
   Registry._register_module = _patched_register
 
 --------------------------------------------------------------------------------
-A4. Quick Start Commands
+4. Quick Start Commands
 --------------------------------------------------------------------------------
 
 # Activate environment
@@ -200,7 +200,7 @@ python analyze_collapse_points.py \
 python analysis_baseline_vs_attack.py
 
 --------------------------------------------------------------------------------
-A5. Project Directory Structure
+5. Project Directory Structure
 --------------------------------------------------------------------------------
 
 tesla-fsd-adversarial-attack/
@@ -240,7 +240,7 @@ tesla-fsd-adversarial-attack/
     grids/                          # 3 composite grid images
 
 --------------------------------------------------------------------------------
-A6. Key Thresholds & Parameters
+6. Key Thresholds & Parameters
 --------------------------------------------------------------------------------
 
 | Parameter           | Value      | Source                | Description                  |
