@@ -7,7 +7,7 @@
 [![Python 3.10.12](https://img.shields.io/badge/python-3.10.12-blue.svg)](https://www.python.org/downloads/release/python-31012/)
 [![CARLA 0.9.16](https://img.shields.io/badge/CARLA-0.9.16-00B4D8.svg)](https://github.com/carla-simulator/carla/releases/tag/0.9.16)
 [![PyTorch 1.11.0+cu117](https://img.shields.io/badge/pytorch-1.11.0%2Bcu117-EE4C2C.svg)](https://pytorch.org/)
-[![Status](https://img.shields.io/badge/status-P1✅_P2✅_P3B🔶-brightgreen.svg)](#-实验矩阵)
+[![Status](https://img.shields.io/badge/status-P1✅_P2✅-brightgreen.svg)](#-实验矩阵)
 [![License](https://img.shields.io/badge/license-none-lightgrey.svg)](#-license)
 
 ---
@@ -81,11 +81,6 @@ results/*.json  →  analysis/  →  图表 + 量化报告
 | **Phase 2** | `sign_patch_front` 攻击采集 | 10 路线 = **1956 帧**（攻击活跃 1356 / 非活跃 600） | ✅ 完成 | `results/attack_sign_patch_front/` |
 | **Phase 2** | 基线 vs 攻击对比分析 | 5 图 + 量化报告 | ✅ 完成 | `results/analysis/` |
 | **Phase 3B** | 崩溃点扫描 `h1_quick` | 24 条件 × 3 路线 × 100 帧 = 72 路线 | ✅ **24/24** | `results/collapse_scan/` |
-| **Phase 3B** | `h1_full` | 56 条件 × 10 路线 = 560 | 📋 未执行 | — |
-| **Phase 3B** | `h2_full` | 105 条件 × 10 路线 = 1050 | 📋 未执行 | — |
-| **Phase 3B** | `h3_full` | 60 条件 × 10 路线 = 600 | 📋 未执行 | — |
-| **Phase 3B** | `full` | 525 条件 × 10 路线 = 5250 | 📋 未执行 | — |
-| **Phase 4** | 防御机制（检测头异常监控） | — | 📋 规划中 | — |
 
 > 矩阵规模由 `python core/collapse_configs.py` 自检**实算输出**，非文档估算（源码 docstring 中标称的 64/120/600 条件为过期值，`INTENSITY_LEVELS` 实为 7 档）。
 
@@ -180,8 +175,6 @@ results/*.json  →  analysis/  →  图表 + 量化报告
 | `single_side_rl` | ✅ | 0.275 | 0.5 | 0.5 |
 | `single_rear` | ✅ | 0.750 | — | — |
 | `single_side_fl` | ✅ | 0.750 | — | — |
-| `single_front_narrow` | ❌ 阴性对照 | 0.750 | — | — |
-| `single_side_rr` | ❌ 阴性对照 | 0.750 | — | — |
 
 **假设检验结果**：
 
@@ -424,26 +417,6 @@ tesla-fsd-adversarial-attack/              108 个跟踪文件 / 78.0 MB
 | 同步模式 dt | 0.05 s | CARLA 设置 | 固定步长，20 FPS |
 | 预热帧 | 8 | 经验值 | 采集前丢弃，等待回调就绪 |
 | BEVFormer 输入 | 800×450 → pad(32) | 适配器常量 | 原始 1600×900 × 0.5 缩放 |
-
----
-
-## ⚠️ 已知限制
-
-1. **仅 BEVFormer-tiny 可运行** — base 需 28.5 GB VRAM、small 需 10.5 GB；8 GB 设备只能跑 tiny（BEV 50×50 / ResNet-50），全部结论受该模型容量限制。
-2. **Domain Gap 导致低置信度** — nuScenes 预训练权重在 CARLA 上基线置信度集中于 0.14–0.20，须把 `score_thr` 降到 0.05 才有足量检测框；攻击的**绝对增益可能被高估**，应以相对指标解读。
-3. **BEV 特征监控对图像空间攻击 0% 检出** — 攻击下 BEV L2 ≈ 0.003 ≪ 阈值 0.027718；BEV 编码器鲁棒（cosine 自相似 ≈ 1.0），脆弱点在检测头。
-4. **⚠️ 攻击组与基线组运动状态不可比（最重要混淆因素）** — 攻击各路线 `speed_mean` 仅 0.005–0.014 m/s（基线 5.211 m/s），且每路线 `recoveries = 3`（冻结恢复传送）；因此攻击组 BEV cosine（0.999994）反而高于基线（0.998174）。更关键的是攻击 **OFF** 段 det_count_mean 已达 18.45（ON 段 19.18，基线 1.49），说明检测数抬升主要源自采集会话状态而非逐帧 patch。
-5. **强度钳位削弱崩溃点定位精度** — `patch_frac` 合法区间 `[0.05, 0.5]`，`h1_quick` 的强度 0.5 与 1.0 经 `max(0.05, min(i, 0.5))` 钳位后完全相同，实际仅 2 个不同 `patch_frac`，崩溃点只能落在网格中点（0.275 / 0.750）。
-6. **H2 / H3 尚无数据** — `collapse_report.json` 中 `median_collapse_dual`、`median_collapse_triple`、`confirmed` 均为 `null`；多相机协同与占空比假设待 `h2_full` / `h3_full` 验证。
-7. **阴性对照存在异常响应** — 攻击 `front_narrow` / `side_rear_right`（不在 BEV 消费链路）仍触发响应，疑经空间注意力间接影响，待进一步验证；崩溃点表中两个阴性对照组的 0.750 需据此谨慎解读。
-8. **路线数低于统计要求** — Phase 2 为 10 路线、`h1_quick` 为 3 路线/条件，低于「≥ 32 路线重复实验、报告均值 ± 标准差」的要求；检测数分布严重右偏，分析已统一改用 median ± IQR。
-9. **仓库数据与分析报告存在 9 帧差异 / 部分归档文件未入库** — `analysis_report.json` 与 `archive_manifest.json` 记录攻击组 1965 帧（ON 1365），而仓库内 10 个原始路线 JSON 求和为 1956 帧（ON 1356），差 9 帧（指标在第 3–4 位有效数字一致，基线侧完全吻合）；此外清单列出的 `PHASE2_REPORT.md` 与 `baseline_collection*.log` 不在仓库中，崩溃扫描的逐条件原始 JSON 保留在 WSL 侧，仓库仅含 `experiment_meta` / `scan_progress` / `collapse_report` + 6 张图。
-10. **仓库配置与运行时不一致** — `config/tesla_camera_layout.py` 内仍写 1280×960，实际运行前必须执行 `scripts/fix_resolution.sh` 降级为 640×480，否则 8GB VRAM 下 GPU 利用率 0%（完全冻结）。
-11. **单帧推理，无时序特征** — BEVFormer 硬编码 `prev_bev_exists=False`，BEV 时序缓存无法启用，只能做单帧推理。
-12. **CARLA 长时运行不稳定** — 连续运行 > 30 min 后 `world.tick()` 可能超时（GPU > 60 °C / VRAM 饱和）；已内建冻结恢复（传送重置 + `post_reset` 标志），但该机制正是第 4 条运动状态偏差的来源。
-13. **源码 docstring 中的矩阵规模已过期** — `run_collapse_experiment.py` 标称 h1_full 64 / h2_full 120 / full 600 条件，实算为 56 / 105 / 525（`INTENSITY_LEVELS` 实为 7 档而非 8 档）；本 README 采用实算值。
-14. **Windows ↔ WSL 脚本漂移风险** — 在 Windows 侧改脚本而未同步到 WSL 会造成数据不一致，必须遵守「修改 → cp 到 WSL → md5 校验 → git commit」纪律。
-15. **路线采样未设随机种子** — `pipeline/collect_baseline.py` 用 `np.random.permutation(n_available)` 选取 spawn point，而 `pipeline/` 与 `analysis/` 中**不存在任何 `np.random.seed` 调用**；只有攻击图案 RNG（`pattern_seed=42`）是确定的。重跑采集会得到不同的路线组合，复现时应直接引用 `results/baseline/baseline_stats.json` 中已记录的 `spawn_index`，或自行补种。
 
 ---
 
