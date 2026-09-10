@@ -392,7 +392,24 @@ tesla-fsd-adversarial-attack/              108 个跟踪文件 / 78.0 MB
 
 ---
 
-## 🔑 关键参数
+## 🔑 数据源
+
+本项目**不依赖任何外部真实驾驶数据集**（无 nuScenes / KITTI / Waymo 原始数据），全部观测数据由仿真自产：
+
+| 数据 | 来源 | 说明 |
+|---|---|---|
+| **Tesla 八相机参数** | Tesla 官方规格（`tesla.cn/autopilot`） | 在 `config/tesla_camera_layout.py` 文件头声明；含安装位姿、FOV（35°/40°/50°/120°/140°）、探测距离（50–250 m） |
+| **仿真场景与路线** | CARLA 0.9.16 · 地图 `Town10HD_Opt` | 由 `world.get_map().get_spawn_points()` 经 `np.random.permutation` 采样；Phase 2 十条路线实际使用的 `spawn_index` = `123 / 135 / 43 / 147 / 120 / 71 / 108 / 145 / 59 / 22`，已逐一记录在 `results/baseline/baseline_stats.json` 的 `per_route` 中 |
+| **感知模型权重** | BEVFormer 官方仓库（nuScenes 预训练） | `~/BEVFormer/ckpts/bevformer_tiny_epoch_24.pth`，因体积与许可原因**未入库**，需自行下载 |
+| **攻击图案** | 程序生成（非外部素材） | `np.random.RandomState(pattern_seed=42)` 生成随机彩色块，`opacity` 加权混合，逐帧完全确定 |
+| **实验观测数据** | 本仓库自产 | `results/` 下 29 个 JSON（基线 2000 帧 + 攻击 1956 帧 + 崩溃扫描元数据）+ 19 张 PNG；`output/` 下 23 张可视化 PNG |
+| **环境事实与阈值** | `issues_solutions_reproducibility.txt` §6 | BEV 监控阈值、分辨率降级、同步模式 dt 等均来自该文件实测记录 |
+
+**可复现性边界**：攻击图案（`pattern_seed=42`）与崩溃扫描条件矩阵（`collapse_configs.py` 纯枚举，无随机性）完全确定；但**路线采样未设随机种子**，重跑采集会得到不同的 `spawn_index` 组合 —— 复现时应直接引用仓库 JSON 中已记录的 spawn_index，或自行补种。
+
+---
+
+## ⚙️ 关键参数
 
 | 参数 | 值 | 来源 | 说明 |
 |---|---|---|---|
@@ -426,6 +443,7 @@ tesla-fsd-adversarial-attack/              108 个跟踪文件 / 78.0 MB
 12. **CARLA 长时运行不稳定** — 连续运行 > 30 min 后 `world.tick()` 可能超时（GPU > 60 °C / VRAM 饱和）；已内建冻结恢复（传送重置 + `post_reset` 标志），但该机制正是第 4 条运动状态偏差的来源。
 13. **源码 docstring 中的矩阵规模已过期** — `run_collapse_experiment.py` 标称 h1_full 64 / h2_full 120 / full 600 条件，实算为 56 / 105 / 525（`INTENSITY_LEVELS` 实为 7 档而非 8 档）；本 README 采用实算值。
 14. **Windows ↔ WSL 脚本漂移风险** — 在 Windows 侧改脚本而未同步到 WSL 会造成数据不一致，必须遵守「修改 → cp 到 WSL → md5 校验 → git commit」纪律。
+15. **路线采样未设随机种子** — `pipeline/collect_baseline.py` 用 `np.random.permutation(n_available)` 选取 spawn point，而 `pipeline/` 与 `analysis/` 中**不存在任何 `np.random.seed` 调用**；只有攻击图案 RNG（`pattern_seed=42`）是确定的。重跑采集会得到不同的路线组合，复现时应直接引用 `results/baseline/baseline_stats.json` 中已记录的 `spawn_index`，或自行补种。
 
 ---
 
