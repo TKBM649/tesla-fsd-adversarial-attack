@@ -1,6 +1,7 @@
 # 🚗 Tesla FSD Adversarial Attack
 
 > **纯视觉自动驾驶感知系统的对抗攻击实验平台**
+> **纯Python易复现**
 > CARLA 0.9.16 仿真 · BEVFormer-tiny 感知代理 · Tesla HW3.0 八相机环视布局复刻
 > 图像空间攻击注入 · 崩溃点扫描 · Windows + WSL2 混合部署（8GB VRAM 可跑通）
 
