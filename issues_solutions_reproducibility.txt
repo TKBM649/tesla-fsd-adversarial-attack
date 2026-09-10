@@ -2,20 +2,16 @@
   Tesla FSD Pure-Vision Autonomous Driving Adversarial Attack Experiment System
   Issues, Solutions & Reproducibility Guide
 ================================================================================
-
-Source: 4 handover documents (PROJECT_STATUS.md x3 + PHASE1_COMPLETION_OPERATIONS.md + PHASE2_5_IMPLEMENTATION_PLAN.md)
-Date: 2026-09-03
-
 ================================================================================
 TABLE OF CONTENTS
 ================================================================================
   Part A: REPRODUCIBILITY GUIDE (for new users)
-    A1. System Requirements
-    A2. Environment Setup (Step-by-Step)
-    A3. BEVFormer Source Code Patches
-    A4. Quick Start Commands
-    A5. Project Directory Structure
-    A6. Key Thresholds & Parameters
+    1. System Requirements
+    2. Environment Setup (Step-by-Step)
+    3. BEVFormer Source Code Patches
+    4. Quick Start Commands
+    5. Project Directory Structure
+    6. Key Thresholds & Parameters
   Part B: ISSUES & SOLUTIONS
     1. GPU VRAM & Hardware Bottlenecks
     2. CARLA Simulator Stability Issues
@@ -33,11 +29,11 @@ PART A: REPRODUCIBILITY GUIDE
 ================================================================================
 
 --------------------------------------------------------------------------------
-A1. System Requirements
+1. System Requirements
 --------------------------------------------------------------------------------
 
 Hardware:
-  - GPU: NVIDIA RTX 2070+ (6-8GB VRAM minimum)
+  - GPU: NVIDIA RTX 4060+ (8GB VRAM minimum)
            Recommended: RTX 3070/3080/3090/4090 (16GB+ VRAM) for higher resolution
   - RAM: 16GB+
   - Storage: 50GB+ free space (CARLA 7.3GB + BEVFormer 2GB + env 3GB + results)
@@ -50,7 +46,7 @@ Software:
   - CUDA: 11.7 (matching PyTorch)
 
 --------------------------------------------------------------------------------
-A2. Environment Setup (Step-by-Step)
+2. Environment Setup (Step-by-Step)
 --------------------------------------------------------------------------------
 
 Step 1: Install WSL 2 + Ubuntu 22.04
@@ -122,7 +118,7 @@ Step 13: Copy project scripts to WSL
   cp <repo_path>/config/tesla_camera_layout.py ~/carla-adversarial/scripts/
 
 --------------------------------------------------------------------------------
-A3. BEVFormer Source Code Patches
+3. BEVFormer Source Code Patches
 --------------------------------------------------------------------------------
 
 The following 4 files in the BEVFormer repo MUST be modified:
@@ -152,7 +148,7 @@ And monkey-patch the double-registration issue:
   Registry._register_module = _patched_register
 
 --------------------------------------------------------------------------------
-A4. Quick Start Commands
+4. Quick Start Commands
 --------------------------------------------------------------------------------
 
 # Activate environment
@@ -200,7 +196,7 @@ python analyze_collapse_points.py \
 python analysis_baseline_vs_attack.py
 
 --------------------------------------------------------------------------------
-A5. Project Directory Structure
+5. Project Directory Structure
 --------------------------------------------------------------------------------
 
 tesla-fsd-adversarial-attack/
@@ -240,7 +236,7 @@ tesla-fsd-adversarial-attack/
     grids/                          # 3 composite grid images
 
 --------------------------------------------------------------------------------
-A6. Key Thresholds & Parameters
+6. Key Thresholds & Parameters
 --------------------------------------------------------------------------------
 
 | Parameter           | Value      | Source                | Description                  |
