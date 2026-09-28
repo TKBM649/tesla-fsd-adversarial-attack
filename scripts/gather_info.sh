@@ -7,8 +7,9 @@ grep -A8 "'h1_quick'" ~/carla-adversarial/scripts/collapse_configs.py
 
 echo '=== COLLAPSE REPORT KEY FINDINGS ==='
 python3 << 'PYEOF'
-import json
-d = json.load(open("/home/cwq/carla-adversarial/results/collapse_scan/h1_quick/analysis/collapse_report.json"))
+import json, os
+p = os.path.expanduser("~/carla-adversarial/results/collapse_scan/h1_quick/analysis/collapse_report.json")
+d = json.load(open(p))
 print(json.dumps(d["hypothesis_tests"]["H1_front_critical"], indent=2))
 PYEOF
 

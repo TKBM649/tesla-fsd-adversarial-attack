@@ -12,6 +12,12 @@ HW 3.0 8 cameras:
   - 1x rear (license plate): 140deg/50m
 """
 
+import math
+
+# Tesla Model 3 dimensions (meters)
+VEHICLE_HALF_WIDTH = 0.925
+VEHICLE_HALF_LENGTH = 2.345
+
 TESLA_CAMERAS = {
     # === Front triplet (mounted behind windshield, high position) ===
     "front_wide": {
@@ -93,3 +99,29 @@ TESLA_CAMERAS = {
         "detection_range": 50,
     },
 }
+
+
+def get_intrinsic_matrix(camera_name):
+    """Compute 3x3 camera intrinsic matrix from FOV and image size.
+
+    K = [[fx,  0, cx],
+         [ 0, fy, cy],
+         [ 0,  0,  1]]
+    where fx = fy = (width/2) / tan(fov/2)
+    """
+    cam = TESLA_CAMERAS[camera_name]
+    fov_rad = math.radians(cam['fov'])
+    fx = fy = (cam['width'] / 2.0) / math.tan(fov_rad / 2.0)
+    cx = cam['width'] / 2.0
+    cy = cam['height'] / 2.0
+    return [
+        [fx, 0,  cx],
+        [0,  fy, cy],
+        [0,  0,  1.0],
+    ]
+
+
+def get_camera_extrinsics(camera_name):
+    """Return (location, rotation) for the given camera."""
+    cam = TESLA_CAMERAS[camera_name]
+    return cam['location'], cam['rotation']
