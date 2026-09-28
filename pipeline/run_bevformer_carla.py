@@ -410,6 +410,7 @@ def run_offline(args):
 
     # Visualize
     output_dir = args.output_dir or args.img_dir
+    os.makedirs(output_dir, exist_ok=True)
     print(f"\nSaving visualization to: {output_dir}")
 
     # Save individual camera images with detections
@@ -430,14 +431,18 @@ def run_offline(args):
     # Save each camera view
     for i, cam_name in enumerate(NUSCENES_CAM_ORDER):
         out_path = os.path.join(output_dir, f'bevformer_{cam_name}.png')
-        cv2.imwrite(out_path, vis_images[i])
-        print(f"  Saved: {out_path}")
+        if cv2.imwrite(out_path, vis_images[i]):
+            print(f"  Saved: {out_path}")
+        else:
+            print(f"  [ERROR] cv2.imwrite failed: {out_path}")
 
     # Save combined grid
     grid = _make_grid(vis_images, cols=3)
     grid_path = os.path.join(output_dir, 'bevformer_detections_grid.png')
-    cv2.imwrite(grid_path, grid)
-    print(f"  Grid:  {grid_path}")
+    if cv2.imwrite(grid_path, grid):
+        print(f"  Grid:  {grid_path}")
+    else:
+        print(f"  [ERROR] cv2.imwrite failed: {grid_path}")
 
     print("\nDone!")
 
